@@ -1,6 +1,6 @@
 # DAG Flow
 
-DAG Flow is a simple DAG workflow engine. It aims to provide a flexible scheduling framework for asynchronous tasks. Currently, it is still an experimental project, so feel free to PR.
+DAG Flow is a simple DAG workflow engine. It aims to provide a flexible scheduling framework for asynchronous tasks. Currently, it is still experimental, so feel free to PR.
 
 ## Examples
 
@@ -222,8 +222,8 @@ For this issue, these crates provide some procedural macros:
 - [dtolnay/async-trait](https://github.com/dtolnay/async-trait)
 - [spastorino/dynosaur](https://github.com/spastorino/dynosaur)
 
-DAG Flow is powered by dynosaur, and it also tried async-trait before.
+DAG Flow is powered by dynosaur, and it has also tried async-trait before.
 
 ### How to handle tasks with different output types?
 
-A common solution is to use serialization/deserialization, but sometimes it can be a bit overkill. In such cases, it may be a good idea to use enums or trait like `std::any::Any`. See [examples](https://github.com/makisevon/dag-flow/tree/main/examples) for more details.
+A common solution is to use serialization/deserialization, but sometimes it can be a bit overkill. In such cases, it may be a good idea to use enums or traits like `std::any::Any`. For more details, see [examples](https://github.com/makisevon/dag-flow/tree/main/examples).
