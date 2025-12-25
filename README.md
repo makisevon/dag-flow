@@ -110,6 +110,7 @@ use std::time::Instant;
 use dag_flow::context::Context;
 use dag_flow::engine::Engine;
 use futures::executor;
+use futures::future::OptionFuture;
 ```
 
 ```rust
@@ -125,7 +126,11 @@ fn main() {
     assert_eq!(now.elapsed().as_secs(), 3);
 
     assert_eq!(
-        executor::block_on(async { context.get(&"C".to_string()).unwrap().await }),
+        executor::block_on(async {
+            OptionFuture::from(context.get(&"C".into()))
+                .await
+                .unwrap_or_default()
+        }),
         Some("C's output".into())
     )
 }
@@ -213,6 +218,8 @@ The workflow is as follows when `C` depends on `B`:
 |  3 s  |              |    Output    |                           `await` `B`'s output                            |
 |       |              |              |                 Do something with `B`'s output<br>Output                  |
 
+For the complete example, see [examples/abc.rs](./examples/abc.rs).
+
 ## Issues
 
 ### How to `dyn` async traits?
@@ -226,4 +233,4 @@ DAG Flow is powered by dynosaur, and it has also tried async-trait before.
 
 ### How to handle tasks with different output types?
 
-A common solution is to use serialization/deserialization, but sometimes it can be a bit overkill. In such cases, it may be a good idea to use enums or traits like `std::any::Any`. For more details, see [examples](https://github.com/makisevon/dag-flow/tree/main/examples).
+A common solution is to use serialization/deserialization, but sometimes it can be a bit overkill. In such cases, it may be a good idea to use enums or traits like `std::any::Any`. For more details, see [examples](./examples).
