@@ -80,11 +80,11 @@ where
             }
 
             for out_neighbor in &graph[node].out_neighbors {
-                let in_degree = in_degrees.get_mut(out_neighbor).unwrap();
-                *in_degree -= 1;
-
-                if *in_degree == 0 {
-                    queue.push_back(out_neighbor);
+                if let Some(in_degree) = in_degrees.get_mut(out_neighbor) {
+                    *in_degree -= 1;
+                    if *in_degree == 0 {
+                        queue.push_back(out_neighbor);
+                    }
                 }
             }
         }
@@ -205,6 +205,6 @@ pub struct BuildEngineError(#[from] EngineErrorKind);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 enum EngineErrorKind {
-    #[error("failed to build DAG")]
+    #[error("failed to build DAG: {0}")]
     DagBuildFailed(#[from] BuildDagError),
 }

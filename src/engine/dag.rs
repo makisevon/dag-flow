@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::hash::Hash;
@@ -106,12 +107,20 @@ where
             return self;
         }
 
-        if !graph.contains_key(&from) {
-            graph.insert(from.clone(), NodeData::new());
-        }
+        let cow_from = if graph.contains_key(&from) {
+            Cow::Borrowed(&from)
+        } else {
+            Cow::Owned(from.clone())
+        };
 
-        graph.get_mut(&from).unwrap().out_neighbors.push(to.clone());
+        graph
+            .entry(cow_from.into_owned())
+            .or_default()
+            .out_neighbors
+            .push(to.clone());
+
         graph.entry(to).or_default().in_neighbors.push(from);
+
         self
     }
 }
@@ -134,11 +143,11 @@ where
 
         while let Some(node) = queue.pop_front() {
             for out_neighbor in &graph[node].out_neighbors {
-                let in_degree = in_degrees.get_mut(out_neighbor).unwrap();
-                *in_degree -= 1;
-
-                if *in_degree == 0 {
-                    queue.push_back(out_neighbor);
+                if let Some(in_degree) = in_degrees.get_mut(out_neighbor) {
+                    *in_degree -= 1;
+                    if *in_degree == 0 {
+                        queue.push_back(out_neighbor);
+                    }
                 }
             }
         }

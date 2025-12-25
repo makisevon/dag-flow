@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::error::Error;
 
 use dag_flow::engine::Engine;
 use dag_flow::task::Input;
@@ -12,12 +11,9 @@ fn main() {
         .add_task(Void::from(2, vec![1]))
         .add_task(Void::from(3, vec![2]));
 
-    let err = unsafe { builder.build().unwrap_err_unchecked() };
-
-    assert_eq!(err.to_string(), "failed to build DAG");
     assert_eq!(
-        err.source().map(ToString::to_string),
-        Some("cycle detected in directed graph".into())
+        builder.build().err().map(|err| err.to_string()),
+        Some("failed to build DAG: cycle detected in directed graph".into())
     );
 }
 
