@@ -9,6 +9,7 @@ use dag_flow::task::Input;
 use dag_flow::task::Task;
 use futures::StreamExt;
 use futures::executor;
+use futures::future::OptionFuture;
 use futures::stream::FuturesUnordered;
 use futures_timer::Delay;
 
@@ -41,15 +42,15 @@ fn main() {
     let data: HashMap<_, _> = executor::block_on(
         ids.iter()
             .map(|id| {
-                let data = context.get(id).unwrap();
-                async move { (id, data.await.unwrap()) }
+                let data = context.get(id);
+                async move { (id, OptionFuture::from(data).await.unwrap_or_default()) }
             })
             .collect::<FuturesUnordered<_>>()
             .collect(),
     );
 
     for (id, &number) in ids.iter().zip(NUMBERS) {
-        assert_eq!(data[id], number.pow(2));
+        assert_eq!(data[id], Some(number.pow(2)));
     }
 }
 

@@ -42,19 +42,10 @@ impl Task<String, Arc<dyn Any + Send + Sync>> for DaikichiYama {
         &self,
         inputs: HashMap<String, Input<'_, Arc<dyn Any + Send + Sync>>>,
     ) -> Option<Arc<dyn Any + Send + Sync>> {
-        let _euphonium: Arc<Euphonium> = inputs[&OumaeKumiko::id()]
-            .clone()
-            .await
-            .unwrap()
-            .downcast()
-            .unwrap();
+        let _euphonium: Arc<Euphonium> =
+            inputs[&OumaeKumiko::id()].clone().await?.downcast().ok()?;
 
-        let _trumpet: Arc<Trumpet> = inputs[&KousakaReina::id()]
-            .clone()
-            .await
-            .unwrap()
-            .downcast()
-            .unwrap();
+        let _trumpet: Arc<Trumpet> = inputs[&KousakaReina::id()].clone().await?.downcast().ok()?;
 
         Some(Arc::new(Observatory::new()))
     }

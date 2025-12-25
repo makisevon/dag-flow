@@ -14,10 +14,10 @@ fn main() {
 
     let err = unsafe { builder.build().unwrap_err_unchecked() };
 
-    assert_eq!(format!("{err}"), "failed to build DAG");
+    assert_eq!(err.to_string(), "failed to build DAG");
     assert_eq!(
-        format!("{}", err.source().unwrap()),
-        "cycle detected in directed graph"
+        err.source().map(ToString::to_string),
+        Some("cycle detected in directed graph".into())
     );
 }
 

@@ -5,6 +5,7 @@ use dag_flow::context::Context;
 use dag_flow::engine::Engine;
 use futures::StreamExt;
 use futures::executor;
+use futures::future::OptionFuture;
 use futures::stream::FuturesUnordered;
 
 mod tasks;
@@ -37,37 +38,34 @@ fn main() {
         vec![&oumae_kumiko, &kousaka_reina, &daikichi_yama]
             .into_iter()
             .map(|id| {
-                let data = context.get(id).unwrap();
-                async move { (id, data.await.unwrap()) }
+                let data = context.get(id);
+                async move { (id, OptionFuture::from(data).await.unwrap_or_default()) }
             })
             .collect::<FuturesUnordered<_>>()
             .collect(),
     );
 
     assert_eq!(
-        format!(
-            "{}",
-            data[&oumae_kumiko].clone().downcast::<Euphonium>().unwrap()
-        ),
-        "Euphonium"
+        data[&oumae_kumiko]
+            .clone()
+            .and_then(|data| data.downcast::<Euphonium>().ok())
+            .map(|euphonium| euphonium.to_string()),
+        Some("Euphonium".into())
     );
 
     assert_eq!(
-        format!(
-            "{}",
-            data[&kousaka_reina].clone().downcast::<Trumpet>().unwrap()
-        ),
-        "Trumpet"
+        data[&kousaka_reina]
+            .clone()
+            .and_then(|data| data.downcast::<Trumpet>().ok())
+            .map(|trumpet| trumpet.to_string()),
+        Some("Trumpet".into())
     );
 
     assert_eq!(
-        format!(
-            "{}",
-            data[&daikichi_yama]
-                .clone()
-                .downcast::<Observatory>()
-                .unwrap()
-        ),
-        "Ai wo Mitsuketa Basho"
+        data[&daikichi_yama]
+            .clone()
+            .and_then(|data| data.downcast::<Observatory>().ok())
+            .map(|observatory| observatory.to_string()),
+        Some("Ai wo Mitsuketa Basho".into())
     );
 }

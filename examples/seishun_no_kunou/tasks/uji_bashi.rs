@@ -41,10 +41,9 @@ impl Task<String, Data> for UjiBashi {
 
         let _run = inputs[&OumaeKumiko::id()]
             .clone()
-            .await
-            .unwrap()
+            .await?
             .oumae_kumiko()
-            .unwrap();
+            .ok()?;
 
         Some(Data::UjiBashi(Cry::new()))
     }

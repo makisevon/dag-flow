@@ -5,6 +5,7 @@ use dag_flow::context::Context;
 use dag_flow::engine::Engine;
 use futures::StreamExt;
 use futures::executor;
+use futures::future::OptionFuture;
 use futures::stream::FuturesUnordered;
 
 mod tasks;
@@ -31,20 +32,26 @@ fn main() {
         vec![&oumae_kumiko, &uji_bashi]
             .into_iter()
             .map(|id| {
-                let data = context.get(id).unwrap();
-                async move { (id, data.await.unwrap()) }
+                let data = context.get(id);
+                async move { (id, OptionFuture::from(data).await.unwrap_or_default()) }
             })
             .collect::<FuturesUnordered<_>>()
             .collect(),
     );
 
     assert_eq!(
-        format!("{}", data[&oumae_kumiko].clone().oumae_kumiko().unwrap()),
-        "Umaku Naritai"
+        data[&oumae_kumiko]
+            .clone()
+            .and_then(|data| data.oumae_kumiko().ok())
+            .map(|run| run.to_string()),
+        Some("Umaku Naritai".into())
     );
 
     assert_eq!(
-        format!("{}", data[&uji_bashi].clone().uji_bashi().unwrap()),
-        "Jigoku no Orphee"
+        data[&uji_bashi]
+            .clone()
+            .and_then(|data| data.uji_bashi().ok())
+            .map(|cry| cry.to_string()),
+        Some("Jigoku no Orphee".into())
     );
 }
