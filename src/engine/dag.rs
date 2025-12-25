@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::hash::Hash;
@@ -107,17 +106,15 @@ where
             return self;
         }
 
-        let cow_from = if graph.contains_key(&from) {
-            Cow::Borrowed(&from)
+        if let Some(NodeData { out_neighbors, .. }) = graph.get_mut(&from) {
+            out_neighbors.push(to.clone());
         } else {
-            Cow::Owned(from.clone())
-        };
-
-        graph
-            .entry(cow_from.into_owned())
-            .or_default()
-            .out_neighbors
-            .push(to.clone());
+            graph
+                .entry(from.clone())
+                .or_default()
+                .out_neighbors
+                .push(to.clone());
+        }
 
         graph.entry(to).or_default().in_neighbors.push(from);
 
@@ -138,16 +135,18 @@ where
 
         let mut queue: VecDeque<_> = in_degrees
             .iter()
-            .flat_map(|(&node, &in_degree)| if in_degree > 0 { None } else { Some(node) })
+            .flat_map(|(&node, &in_degree)| (in_degree == 0).then_some(node))
             .collect();
 
         while let Some(node) = queue.pop_front() {
             for out_neighbor in &graph[node].out_neighbors {
-                if let Some(in_degree) = in_degrees.get_mut(out_neighbor) {
-                    *in_degree -= 1;
-                    if *in_degree == 0 {
-                        queue.push_back(out_neighbor);
-                    }
+                let Some(in_degree) = in_degrees.get_mut(out_neighbor) else {
+                    continue;
+                };
+
+                *in_degree -= 1;
+                if *in_degree == 0 {
+                    queue.push_back(out_neighbor);
                 }
             }
         }

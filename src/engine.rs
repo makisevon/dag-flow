@@ -58,7 +58,7 @@ where
 
         let mut queue: VecDeque<_> = in_degrees
             .iter()
-            .flat_map(|(&node, &in_degree)| if in_degree > 0 { None } else { Some(node) })
+            .flat_map(|(&node, &in_degree)| (in_degree == 0).then_some(node))
             .collect();
 
         while let Some(node) = queue.pop_front() {
@@ -80,11 +80,13 @@ where
             }
 
             for out_neighbor in &graph[node].out_neighbors {
-                if let Some(in_degree) = in_degrees.get_mut(out_neighbor) {
-                    *in_degree -= 1;
-                    if *in_degree == 0 {
-                        queue.push_back(out_neighbor);
-                    }
+                let Some(in_degree) = in_degrees.get_mut(out_neighbor) else {
+                    continue;
+                };
+
+                *in_degree -= 1;
+                if *in_degree == 0 {
+                    queue.push_back(out_neighbor);
                 }
             }
         }
@@ -92,11 +94,10 @@ where
         graph
             .iter()
             .flat_map(|(node, _)| {
-                if self.tasks.get(node)?.is_auto() {
-                    context.get(node)
-                } else {
-                    None
-                }
+                self.tasks
+                    .get(node)
+                    .filter(|task| task.is_auto())
+                    .and_then(|_| context.get(node))
             })
             .collect::<FuturesUnordered<_>>()
             .collect::<Vec<_>>()
