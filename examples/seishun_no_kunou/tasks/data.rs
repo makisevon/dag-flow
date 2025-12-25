@@ -9,16 +9,14 @@ pub enum Data {
 
 impl Data {
     pub fn oumae_kumiko(self) -> Result<Run, ()> {
-        if let Self::OumaeKumiko(run) = self {
-            return Ok(run);
-        }
-        Err(())
+        let Self::OumaeKumiko(run) = self else {
+            Err(())?
+        };
+        Ok(run)
     }
 
     pub fn uji_bashi(self) -> Result<Cry, ()> {
-        if let Self::UjiBashi(cry) = self {
-            return Ok(cry);
-        }
-        Err(())
+        let Self::UjiBashi(cry) = self else { Err(())? };
+        Ok(cry)
     }
 }
